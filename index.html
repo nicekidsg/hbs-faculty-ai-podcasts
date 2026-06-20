@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HBS Faculty on AI — Podcast Tracker</title>
+<meta name="description" content="An interactive directory of podcast episodes from the past year featuring Harvard Business School faculty discussing artificial intelligence.">
+<style>
+  :root{
+    --crimson:#a51c30;
+    --crimson-dark:#7d1626;
+    --ink:#1a1a1a;
+    --muted:#6b6b6b;
+    --line:#e7e3df;
+    --bg:#f6f4f1;
+    --card:#ffffff;
+    --chip:#f0ece8;
+    --shadow:0 1px 2px rgba(0,0,0,.04),0 6px 20px rgba(0,0,0,.06);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;font-family:Georgia,'Times New Roman',serif;
+    color:var(--ink);background:var(--bg);line-height:1.5;
+  }
+  body.zh{font-family:"Songti SC","STSong",Georgia,"PingFang SC","Microsoft YaHei",serif}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+  header.hero{
+    background:linear-gradient(160deg,var(--crimson),var(--crimson-dark));
+    color:#fff;padding:54px 0 60px;border-bottom:5px solid #5e101d;position:relative;
+  }
+  .langtoggle{
+    position:absolute;top:22px;right:20px;display:flex;border:1px solid rgba(255,255,255,.45);
+    border-radius:999px;overflow:hidden;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+  }
+  .langtoggle button{
+    background:transparent;color:#fff;border:0;padding:7px 15px;font-size:13px;font-weight:600;
+    cursor:pointer;transition:.15s;opacity:.8;
+  }
+  .langtoggle button.active{background:#fff;color:var(--crimson);opacity:1}
+  .eyebrow{font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    text-transform:uppercase;letter-spacing:.18em;font-size:12px;font-weight:600;opacity:.85;margin:0 0 14px}
+  body.zh .eyebrow{letter-spacing:.1em}
+  h1{font-size:40px;line-height:1.12;margin:0 0 14px;font-weight:700}
+  .sub{font-size:18px;max-width:680px;opacity:.95;margin:0 0 4px}
+
+  .controls{
+    background:var(--card);border:1px solid var(--line);border-radius:14px;
+    box-shadow:var(--shadow);padding:18px;margin:-34px auto 26px;position:relative;z-index:3;
+  }
+  .searchrow{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  .search{flex:1;min-width:240px;position:relative}
+  .search input{
+    width:100%;padding:13px 14px 13px 42px;font-size:16px;font-family:inherit;
+    border:1px solid var(--line);border-radius:10px;background:#fbfaf9;
+  }
+  .search input:focus{outline:2px solid var(--crimson);border-color:transparent}
+  .search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);opacity:.45}
+  .sortsel{font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    font-size:14px;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:#fbfaf9;cursor:pointer}
+
+  .filterbar{margin-top:14px}
+  .filterbar .label{font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 8px;font-weight:600}
+  body.zh .filterbar .label{letter-spacing:.04em}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{
+    font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:13px;
+    padding:7px 13px;border-radius:999px;border:1px solid var(--line);background:var(--chip);
+    cursor:pointer;transition:.15s;user-select:none;color:#3a3a3a;
+  }
+  .chip:hover{border-color:var(--crimson)}
+  .chip.active{background:var(--crimson);color:#fff;border-color:var(--crimson)}
+
+  .statusline{font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    font-size:14px;color:var(--muted);margin:6px 2px 18px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+  .statusline a{color:var(--crimson);cursor:pointer;text-decoration:none;border:0;background:none;font:inherit}
+  .statusline a:hover{text-decoration:underline}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:18px;padding-bottom:50px}
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:14px;
+    box-shadow:var(--shadow);padding:22px;display:flex;flex-direction:column;transition:.18s;
+  }
+  .card:hover{transform:translateY(-3px);box-shadow:0 10px 30px rgba(0,0,0,.10)}
+  .card .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px}
+  .show-tag{font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+    color:var(--crimson);background:#fbeef0;padding:4px 9px;border-radius:6px;white-space:nowrap}
+  .date{font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:12px;color:var(--muted);white-space:nowrap}
+  .card h3{font-size:20px;line-height:1.25;margin:2px 0 8px}
+  .prof{font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    font-size:13.5px;font-weight:600;color:var(--ink);margin:0 0 10px}
+  body.zh .card h3,body.zh .card p.desc{font-family:"Songti SC","STSong","PingFang SC","Microsoft YaHei",serif}
+  .prof .dot{color:var(--crimson)}
+  .card p.desc{font-size:15px;color:#3d3d3d;margin:0 0 18px;flex:1}
+  .listen{
+    font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:14px;font-weight:600;
+    color:#fff;background:var(--crimson);text-decoration:none;padding:10px 16px;border-radius:9px;
+    display:inline-flex;align-items:center;gap:7px;align-self:flex-start;transition:.15s;
+  }
+  .listen:hover{background:var(--crimson-dark)}
+  .empty{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--muted);
+    font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+
+  footer{border-top:1px solid var(--line);background:#fff;padding:26px 0;
+    font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:13px;color:var(--muted)}
+  footer a{color:var(--crimson)}
+  @media(max-width:560px){h1{font-size:30px}.grid{grid-template-columns:1fr}.langtoggle{top:16px;right:14px}}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="wrap">
+    <div class="langtoggle">
+      <button id="btnEn" class="active" onclick="setLang('en')">EN</button>
+      <button id="btnZh" onclick="setLang('zh')">中文</button>
+    </div>
+    <p class="eyebrow" id="eyebrow"></p>
+    <h1 id="h1"></h1>
+    <p class="sub" id="sub"></p>
+  </div>
+</header>
+
+<div class="wrap">
+  <section class="controls">
+    <div class="searchrow">
+      <div class="search">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input id="q" type="search" autocomplete="off">
+      </div>
+      <select id="sort" class="sortsel">
+        <option value="new"></option>
+        <option value="old"></option>
+        <option value="prof"></option>
+      </select>
+    </div>
+    <div class="filterbar">
+      <p class="label" id="lblProf"></p>
+      <div class="chips" id="profChips"></div>
+    </div>
+    <div class="filterbar">
+      <p class="label" id="lblShow"></p>
+      <div class="chips" id="showChips"></div>
+    </div>
+  </section>
+
+  <div class="statusline">
+    <span id="count"></span>
+    <a id="reset"></a>
+  </div>
+
+  <main class="grid" id="grid"></main>
+</div>
+
+<footer>
+  <div class="wrap" id="footer"></div>
+</footer>
+
+<script>
+const UI={
+  en:{
+    eyebrow:"Harvard Business School · Faculty Voices",
+    h1:"HBS Faculty on Artificial Intelligence",
+    sub:"An interactive directory of podcast episodes from the past year in which Harvard Business School professors discuss how AI is reshaping strategy, work, and business.",
+    search:"Search professors, topics, shows…",
+    sortNew:"Newest first", sortOld:"Oldest first", sortProf:"By professor (A–Z)",
+    lblProf:"Filter by professor", lblShow:"Filter by show",
+    reset:"Reset filters", listen:"Listen",
+    count:(n,t)=>`Showing ${n} of ${t} episodes`,
+    empty:"No episodes match your filters. Try resetting.",
+    allFaculty:"Multiple Faculty",
+    footer:"Curated directory for educational reference. Episode titles, dates, and links point to the original publishers (HBS Online, HBR, MIT Sloan Management Review, CXOTalk, and others). Not affiliated with or endorsed by Harvard Business School."
+  },
+  zh:{
+    eyebrow:"哈佛商学院 · 教授之声",
+    h1:"哈佛商学院教授谈人工智能",
+    sub:"一个可交互的播客节目目录，收录过去一年中哈佛商学院教授探讨人工智能如何重塑战略、工作与商业的节目。",
+    search:"搜索教授、主题或节目…",
+    sortNew:"最新优先", sortOld:"最早优先", sortProf:"按教授姓名（A–Z）",
+    lblProf:"按教授筛选", lblShow:"按节目筛选",
+    reset:"重置筛选", listen:"收听",
+    count:(n,t)=>`显示 ${t} 期中的 ${n} 期`,
+    empty:"没有符合筛选条件的节目，请尝试重置。",
+    allFaculty:"多位教授",
+    footer:"本目录为教育参考用途。节目标题、日期及链接均指向原始发布方（HBS Online、HBR、MIT 斯隆管理评论、CXOTalk 等）。本站与哈佛商学院无隶属关系，亦未获其背书。"
+  }
+};
+
+/* EPISODES_START — auto-generated from data.json by scripts/update_episodes.py; do not edit by hand */
+const EPISODES = [
+  {
+    "prof": "Multiple Faculty",
+    "show": "The Parlor Room",
+    "date": "2026-06-17",
+    "title": "Compilation (Part 6): Where AI Surprises Us",
+    "desc": "HBS faculty reflect on what about AI has most surprised them — the unexpected limits, capabilities, and second-order effects emerging across business.",
+    "title_zh": "合集（六）：AI 让我们意外之处",
+    "desc_zh": "哈佛商学院教授们反思 AI 最令他们意外的地方——那些出乎意料的局限、能力，以及在商业中浮现的二阶效应。",
+    "url": "https://online.hbs.edu/podcast/details?episode=1703362713"
+  },
+  {
+    "prof": "Felix Oberholzer-Gee",
+    "show": "The Parlor Room",
+    "date": "2026-05-20",
+    "title": "Felix Oberholzer-Gee on Winning with AI",
+    "desc": "The case episode for this project: a strategist’s view of where AI creates real competitive advantage — and where it merely raises the table stakes.",
+    "title_zh": "Felix Oberholzer-Gee 谈如何用 AI 取胜",
+    "desc_zh": "本项目的案例节目：从战略家的视角，剖析 AI 在哪些方面创造真正的竞争优势，又在哪些方面只是抬高了入场门槛。",
+    "url": "https://online.hbs.edu/podcast/felix-oberholzer-gee-on-winning-with-ai"
+  },
+  {
+    "prof": "Sunil Gupta",
+    "show": "The Parlor Room",
+    "date": "2026-05-13",
+    "title": "Sunil Gupta on Marketing in the Age of AI",
+    "desc": "How AI is reshaping marketing — from customer insight and personalization to the changing role of the marketing organization.",
+    "title_zh": "Sunil Gupta 谈 AI 时代的市场营销",
+    "desc_zh": "AI 如何重塑市场营销——从客户洞察、个性化，到营销组织角色的转变。",
+    "url": "https://online.hbs.edu/podcast/sunil-gupta-on-marketing-in-the-age-of-ai"
+  },
+  {
+    "prof": "Multiple Faculty",
+    "show": "The Parlor Room",
+    "date": "2026-05-06",
+    "title": "Compilation (Part 3): Mid-Career Strategies for an AI-Driven Workplace",
+    "desc": "Felix Oberholzer-Gee, Nien-hê Hsieh, Sunil Gupta, and Linda Hill on how to stay relevant in an AI-driven workplace by building human skills and a “wayfinder” mindset.",
+    "title_zh": "合集（三）：AI 职场中的职业中期策略",
+    "desc_zh": "Felix Oberholzer-Gee、Nien-hê Hsieh、Sunil Gupta 与 Linda Hill 探讨：如何通过培养人际技能与“探路者”心态，在 AI 驱动的职场中保持竞争力。",
+    "url": "https://podcasts.apple.com/us/podcast/the-parlor-room/id1709512413"
+  },
+  {
+    "prof": "Multiple Faculty",
+    "show": "The Parlor Room",
+    "date": "2026-04-29",
+    "title": "Compilation: “Will AI Take My Job?”",
+    "desc": "Professors Nien-hê Hsieh, Christina Wallace, Joe Fuller, and Iavor Bojinov examine how AI is reshaping organizations, the nature of work, hiring, management, and trust.",
+    "title_zh": "合集：“AI 会抢走我的工作吗？”",
+    "desc_zh": "Nien-hê Hsieh、Christina Wallace、Joe Fuller 与 Iavor Bojinov 共同探讨 AI 如何重塑组织、工作的本质，以及招聘、管理与信任。",
+    "url": "https://online.hbs.edu/podcast/details?episode=5062245386"
+  },
+  {
+    "prof": "Joe Fuller",
+    "show": "The Parlor Room",
+    "date": "2026-04-22",
+    "title": "Joe Fuller on AI and Rethinking Work",
+    "desc": "Why organizations must rethink how work gets done — rather than simply bolting AI onto existing processes — to capture real value from the technology.",
+    "title_zh": "Joe Fuller 谈 AI 与重新思考工作方式",
+    "desc_zh": "为什么组织必须重新思考工作的完成方式——而非简单地把 AI 嫁接到既有流程上——才能真正从这项技术中获取价值。",
+    "url": "https://online.hbs.edu/podcast/joe-fuller-on-ai-and-rethinking-work"
+  },
+  {
+    "prof": "Joe Fuller",
+    "show": "Managing the Future of Work",
+    "date": "2026-04-22",
+    "title": "Sal Khan on AI Disruption and Learning",
+    "desc": "Khan Academy founder Sal Khan joins Joe Fuller and Bill Kerr to discuss how AI is disrupting education, skills, and the workforce.",
+    "title_zh": "Sal Khan 谈 AI 的颠覆与学习",
+    "desc_zh": "可汗学院创始人 Sal Khan 与 Joe Fuller、Bill Kerr 一起探讨 AI 如何颠覆教育、技能与劳动力。",
+    "url": "https://www.hbs.edu/managing-the-future-of-work/podcast/Pages/default.aspx"
+  },
+  {
+    "prof": "Christina Wallace",
+    "show": "The Parlor Room",
+    "date": "2026-04-15",
+    "title": "Christina Wallace on AI and Entrepreneurship",
+    "desc": "How founders are using AI to accelerate customer research, prototyping, branding, and operations — and how it is transforming entrepreneurship and creativity.",
+    "title_zh": "Christina Wallace 谈 AI 与创业",
+    "desc_zh": "创始人如何利用 AI 加速客户调研、原型设计、品牌打造与运营，以及 AI 如何重塑创业与创造力。",
+    "url": "https://online.hbs.edu/podcast/christina-wallace-on-ai-and-entrepreneurship"
+  },
+  {
+    "prof": "Multiple Faculty",
+    "show": "The Parlor Room",
+    "date": "2026-04-08",
+    "title": "Compilation (Part 1): Early Career Advice in the Age of AI",
+    "desc": "HBS faculty including Linda A. Hill and Sunil Gupta share actionable advice for early-career professionals on pairing AI skills with foundational business knowledge.",
+    "title_zh": "合集（上）：AI 时代的职业早期建议",
+    "desc_zh": "包括 Linda A. Hill 与 Sunil Gupta 在内的哈佛商学院教授，为职业早期人士提供可落地的建议：如何将 AI 技能与扎实的商业基础结合起来。",
+    "url": "https://online.hbs.edu/podcast/compilation-epsiode-early-career-advice-part-1"
+  },
+  {
+    "prof": "Bill Kerr",
+    "show": "Managing the Future of Work",
+    "date": "2026-04-08",
+    "title": "Workforce Competitiveness and AI Scenarios",
+    "desc": "How AI tools and training can help address labor shortages and skills gaps, and what different adoption scenarios mean for workforce competitiveness.",
+    "title_zh": "劳动力竞争力与 AI 的多种情景",
+    "desc_zh": "AI 工具与培训如何帮助应对劳动力短缺与技能缺口，以及不同的采用情景对劳动力竞争力意味着什么。",
+    "url": "https://www.hbs.edu/managing-the-future-of-work/podcast/Pages/default.aspx"
+  },
+  {
+    "prof": "Iavor Bojinov",
+    "show": "The Parlor Room",
+    "date": "2026-04-01",
+    "title": "Iavor Bojinov on AI Adoption, Trust, and Decision-Making",
+    "desc": "Why AI adoption hinges on trust, how organizations can scale AI effectively, and what leaders must rethink to succeed in an AI-driven world. The premiere of the “Hello AI” season.",
+    "title_zh": "Iavor Bojinov 谈 AI 的采用、信任与决策",
+    "desc_zh": "为什么 AI 的落地取决于信任，组织如何有效地规模化应用 AI，以及领导者必须重新思考什么才能在 AI 驱动的世界中取得成功。“Hello AI”系列的开篇之作。",
+    "url": "https://online.hbs.edu/podcast/iavor-bojinov-on-ai-adoption-trust-and-decision-making"
+  },
+  {
+    "prof": "Joe Fuller",
+    "show": "Managing the Future of Work",
+    "date": "2026-03-25",
+    "title": "Global Workforce Transformation Amid AI Disruption",
+    "desc": "A look at how AI disruption is reshaping the global workforce, and what leaders and policymakers should prepare for.",
+    "title_zh": "AI 颠覆下的全球劳动力转型",
+    "desc_zh": "审视 AI 的颠覆如何重塑全球劳动力，以及领导者和政策制定者应为此做好哪些准备。",
+    "url": "https://www.hbs.edu/managing-the-future-of-work/podcast/Pages/default.aspx"
+  },
+  {
+    "prof": "Tsedal Neeley",
+    "show": "HBR IdeaCast",
+    "date": "2026-03-18",
+    "title": "Strategy Summit 2026: Why AI Means Radical Change",
+    "desc": "What it takes for AI implementation to succeed — the minimum technological capabilities, overcoming organizational silos, and transforming workflows to add real value.",
+    "title_zh": "2026 战略峰会：为什么 AI 意味着彻底变革",
+    "desc_zh": "AI 落地成功需要什么——最基本的技术能力、打破组织壁垒，以及重塑工作流程以创造真正价值。",
+    "url": "https://hbr.org/podcast/2026/03/strategy-summit-2026-why-ai-means-radical-change"
+  },
+  {
+    "prof": "Karim Lakhani",
+    "show": "CXOTalk",
+    "date": "2026-02-20",
+    "title": "Business Transformation: How to Become an AI Company?",
+    "desc": "How established organizations can build the enterprise AI strategy and capabilities needed to transform and compete in a cloud- and algorithm-driven world.",
+    "title_zh": "业务转型：如何成为一家 AI 公司？",
+    "desc_zh": "成熟企业如何构建所需的企业级 AI 战略与能力，从而在以云和算法驱动的世界中实现转型并参与竞争。",
+    "url": "https://www.cxotalk.com/episode/business-transformation-how-become-ai-company"
+  }
+];
+/* EPISODES_END */
+
+let lang="en";
+let activeProf=null, activeShow=null;
+
+const grid=document.getElementById('grid');
+const qEl=document.getElementById('q');
+const sortEl=document.getElementById('sort');
+const countEl=document.getElementById('count');
+const profChips=document.getElementById('profChips');
+const showChips=document.getElementById('showChips');
+
+const fmtDate=d=>new Date(d+'T00:00:00').toLocaleDateString(lang==='zh'?'zh-CN':'en-US',{year:'numeric',month:lang==='zh'?'long':'short',day:'numeric'});
+const profLabel=p=>p==="Multiple Faculty"?UI[lang].allFaculty:p;
+
+function buildChips(){
+  profChips.innerHTML='';showChips.innerHTML='';
+  [...new Set(EPISODES.map(e=>e.prof))].sort().forEach(p=>{
+    const c=document.createElement('div');c.className='chip';c.textContent=profLabel(p);
+    c.onclick=()=>{activeProf=activeProf===p?null:p;syncChips();render();};
+    c.dataset.prof=p;profChips.appendChild(c);
+  });
+  [...new Set(EPISODES.map(e=>e.show))].sort().forEach(s=>{
+    const c=document.createElement('div');c.className='chip';c.textContent=s;
+    c.onclick=()=>{activeShow=activeShow===s?null:s;syncChips();render();};
+    c.dataset.show=s;showChips.appendChild(c);
+  });
+  syncChips();
+}
+function syncChips(){
+  profChips.querySelectorAll('.chip').forEach(c=>c.classList.toggle('active',c.dataset.prof===activeProf));
+  showChips.querySelectorAll('.chip').forEach(c=>c.classList.toggle('active',c.dataset.show===activeShow));
+}
+
+function applyStaticText(){
+  const u=UI[lang];
+  document.documentElement.lang=lang==='zh'?'zh-CN':'en';
+  document.body.classList.toggle('zh',lang==='zh');
+  document.getElementById('eyebrow').textContent=u.eyebrow;
+  document.getElementById('h1').textContent=u.h1;
+  document.getElementById('sub').textContent=u.sub;
+  qEl.placeholder=u.search;
+  sortEl.options[0].textContent=u.sortNew;
+  sortEl.options[1].textContent=u.sortOld;
+  sortEl.options[2].textContent=u.sortProf;
+  document.getElementById('lblProf').textContent=u.lblProf;
+  document.getElementById('lblShow').textContent=u.lblShow;
+  document.getElementById('reset').textContent=u.reset;
+  document.getElementById('footer').textContent=u.footer;
+  document.getElementById('btnEn').classList.toggle('active',lang==='en');
+  document.getElementById('btnZh').classList.toggle('active',lang==='zh');
+}
+
+function render(){
+  const u=UI[lang];
+  const q=qEl.value.trim().toLowerCase();
+  let list=EPISODES.filter(e=>{
+    if(activeProf&&e.prof!==activeProf)return false;
+    if(activeShow&&e.show!==activeShow)return false;
+    if(q){const blob=(e.prof+' '+e.title+' '+(e.title_zh||'')+' '+e.show+' '+e.desc+' '+(e.desc_zh||'')).toLowerCase();if(!blob.includes(q))return false;}
+    return true;
+  });
+  const s=sortEl.value;
+  list.sort((a,b)=> s==='old'?a.date.localeCompare(b.date)
+    : s==='prof'?a.prof.localeCompare(b.prof)
+    : b.date.localeCompare(a.date));
+
+  countEl.textContent=u.count(list.length,EPISODES.length);
+  grid.innerHTML='';
+  if(!list.length){grid.innerHTML=`<div class="empty">${u.empty}</div>`;return;}
+  list.forEach(e=>{
+    const title=(lang==='zh'&&e.title_zh)?e.title_zh:e.title;
+    const desc=(lang==='zh'&&e.desc_zh)?e.desc_zh:e.desc;
+    const card=document.createElement('article');card.className='card';
+    card.innerHTML=`
+      <div class="top">
+        <span class="show-tag">${e.show}</span>
+        <span class="date">${fmtDate(e.date)}</span>
+      </div>
+      <h3>${title}</h3>
+      <p class="prof"><span class="dot">●</span> ${profLabel(e.prof)}</p>
+      <p class="desc">${desc}</p>
+      <a class="listen" href="${e.url}" target="_blank" rel="noopener">
+        ${u.listen}
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H8M17 7v9"/></svg>
+      </a>`;
+    grid.appendChild(card);
+  });
+}
+
+function setLang(l){lang=l;applyStaticText();buildChips();render();}
+
+document.getElementById('reset').onclick=()=>{activeProf=null;activeShow=null;qEl.value='';sortEl.value='new';syncChips();render();};
+qEl.oninput=render;sortEl.onchange=render;
+
+setLang('en');
+</script>
+</body>
+</html>
